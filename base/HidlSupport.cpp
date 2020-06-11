@@ -265,13 +265,21 @@ void hidl_string::setToExternal(const char *data, size_t size) {
     // directly into the read-only binder buffer. If we manually copy the
     // data now to add a zero, then we lose the efficiency of this method.
     // Checking here (it's also checked in the parceling code later).
-    CHECK(data[size] == '\0');
 
+    // CHECK(data[size] == '\0');
+
+    // However, when it occurs it is possibly due legacy blobs which can't be
+    // updated this easily. So copy it and add a zero anyway and loose some
+    // efficiency in this case.
     clear();
-
-    mBuffer = data;
-    mSize = static_cast<uint32_t>(size);
-    mOwnsBuffer = false;
+    if (data[size] != '\0') {
+        copyFrom(data, size);
+        LOG(ERROR) << "===== Correcting data with 0-character. mBuffer:" << mBuffer << " mSize:" << mSize << " ====" ;
+   } else {
+        mBuffer = data;
+        mSize = static_cast<uint32_t>(size);
+        mOwnsBuffer = false;
+    }
 }
 
 const char *hidl_string::c_str() const {
