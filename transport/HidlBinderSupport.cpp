@@ -254,6 +254,10 @@ sp<IBinder> getOrCreateCachedBinder(::android::hidl::base::V1_0::IBase* ifacePtr
 
     if (sBnObj == nullptr) {
         auto func = details::getBnConstructorMap().get(descriptor, nullptr);
+        if (!func) {
+            // TODO(b/69122224): remove this static variable when prebuilts updated
+            func = details::gBnConstructorMap->get(descriptor, nullptr);
+        }
         LOG_ALWAYS_FATAL_IF(func == nullptr, "%s getBnConstructorMap returned null for %s",
                             __func__, descriptor.c_str());
 
